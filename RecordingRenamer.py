@@ -9,6 +9,9 @@ class Data:
     ExtensionMask = None
     Remove_MKV = None
     Delay = None
+    Debug = False
+    RenameMode = None
+    WindowCount = None
 
 def on_event(event):
 
@@ -32,8 +35,14 @@ def on_event(event):
         print(oldPath)
         print(newfile)
 
-
-
+    if event == S.OBS_FRONTEND_EVENT_RECORDING_STARTED:
+        print("Triggered when the recording started. Window log cleaned and started.")
+        with open(script_path()+'/WindowLog.txt') as winlist:
+            if os.path.exists(winlist):
+                os.remove(winlist)
+                print("DEBUG: WindowLog.txt file found. Deleting and starting clean log.")
+            else:
+                print("DEBUG: No WindowLog.txt file found. Ignoring.")
     
     if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
 
@@ -139,6 +148,10 @@ def script_update(settings):
     Data.ExtensionMask = '\*' + Data.Extension
     Data.Remove_MKV = S.obs_data_get_bool(settings,"remove_mkv")
     Data.Delay = 1000*S.obs_data_get_int(settings,"period") or 15000
+    Data.Debug = S.obs_data_get_bool(settings,"debug") or False
+    Data.WindowCount = S.obs_data_get_int(settings,"windowcount") or 1
+    Data.RenameMode = S.obs_data_get_string(settings,"mode") or "windows"
+
     print(Data.Delay)
     S.timer_remove(timer_process)
     S.timer_add(timer_process, Data.Delay)
@@ -163,5 +176,18 @@ def script_properties():
         props,"period","Time interval (s)", 15, 3600, 15)
     S.obs_properties_add_bool(
         props,"remove_mkv","Remove .mkv on rename?")
+    opermode = S.obs_properties_add_list(
+        props,"mode","Choose operation/filename source",S.OBS_COMBO_TYPE_LIST,S.OBS_COMBO_FORMAT_STRING)
+    S.obs_property_list_add_string(
+        opermode,"Use active stream and game title from Twitch","twitch")
+    S.obs_property_list_add_string(
+        opermode,"Use titles of most active window(s) during recording session.","windows")
+    S.obs_properties_add_text(
+        props,"twitch_channel","Twitch Channel name",S.OBS_TEXT_DEFAULT)
+    S.obs_properties_add_int(
+        props,"windowcount", "Specify how many windows during this session will be included in the filename, sorted by longest running.", 1, 99, 1)
+    S.obs_properties_add_bool(
+        props,"debug", "Enable debug logging for this script")
+    
 
     return props
