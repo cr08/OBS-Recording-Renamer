@@ -2,6 +2,7 @@ import obspython as S
 import glob, win32gui, win32process, re, psutil, os, os.path
 from pathlib import Path
 from ctypes import windll
+import urllib.request
 
 class Data:
     OutputDir = None
@@ -9,6 +10,17 @@ class Data:
     ExtensionMask = None
     Remove_MKV = None
     Delay = None
+    Debug = False
+    RenameMode = None
+    WindowCount = None
+    ChannelName = None
+    
+# Placeholder calls to pull game and stream title from Twitch. Will be added properly to the code later.
+# We'll be utilizing DecAPI which allows us to pull this data without any keys or auth. A note will be added
+# to the README in case this service ever fails in the future.
+
+# twitch_streamtitle = urllib.request.urlopen("https://decapi.me/twitch/title/" + Data.ChannelName).read()
+# twitch_game = urllib.request.urlopen("https://decapi.me/twitch/game/" + Data.ChannelName).read()
 
 def on_event(event):
 
@@ -32,8 +44,14 @@ def on_event(event):
         print(oldPath)
         print(newfile)
 
-
-
+    if event == S.OBS_FRONTEND_EVENT_RECORDING_STARTED:
+        print("Triggered when the recording started. Window log cleaned and started.")
+        with open(script_path()+'/WindowLog.txt') as winlist:
+            if os.path.exists(winlist):
+                os.remove(winlist)
+                print("DEBUG: WindowLog.txt file found. Deleting and starting clean log.")
+            else:
+                print("DEBUG: No WindowLog.txt file found. Ignoring.")
     
     if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
 
@@ -139,12 +157,17 @@ def script_update(settings):
     Data.ExtensionMask = '\*' + Data.Extension
     Data.Remove_MKV = S.obs_data_get_bool(settings,"remove_mkv")
     Data.Delay = 1000*S.obs_data_get_int(settings,"period") or 15000
+    Data.Debug = S.obs_data_get_bool(settings,"debug") or False
+    Data.WindowCount = S.obs_data_get_int(settings,"windowcount") or 1
+    
+
     print(Data.Delay)
     S.timer_remove(timer_process)
     S.timer_add(timer_process, Data.Delay)
 
 def timer_process():
     print("timer activated")
+    print(S.obs_service_get_username)
     rename_files(Data.OutputDir)
 
 
@@ -163,5 +186,10 @@ def script_properties():
         props,"period","Time interval (s)", 15, 3600, 15)
     S.obs_properties_add_bool(
         props,"remove_mkv","Remove .mkv on rename?")
+    print("lol")
+    print(S.obs_properties_add_bool(props,"debug", "Enable debug logging for this script") + " lol " + S.obs_properties_add_bool(props,"debug2", "Test debug2"))
+    S.obs_properties_add_int(
+        props,"windowcount", "Specify how many windows during this session will be included in the filename, sorted by longest running.", 1, 99, 1)
+
 
     return props
