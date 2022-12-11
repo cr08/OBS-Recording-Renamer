@@ -4,6 +4,8 @@ from pathlib import Path
 from ctypes import windll
 import urllib.request
 
+description = "<center><h2>OBS-Rec-Rename</h2></center><center><h3>Script to automatically rename recordings based on content.</h3></center><center><h4>Click <a href=\"https://github.com/cr08/obs-rec-rename#readme\">here</a> for documentation.<hr>"
+
 class Data:
     OutputDir = None
     Extension = None
@@ -54,6 +56,9 @@ def on_event(event):
                 print("DEBUG: No WindowLog.txt file found. Ignoring.")
     
     if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
+        
+        if Data.Debug == True:
+            print("DEBUG: Replay Buffer SAVED")
 
         print("Triggered when the replay buffer saved")
         path = find_latest_file(Data.OutputDir, '\*')
@@ -72,9 +77,26 @@ def on_event(event):
         print(file)
         print(oldPath)
         print(newfile)
-
-
-
+        
+    if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
+        
+        if Data.Debug == True:
+            print("DEBUG: Replay Buffer Starting")
+            
+    if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
+        
+        if Data.Debug == True:
+            print("DEBUG: Replay Buffer Started")
+       
+    if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING:
+        
+        if Data.Debug == True:
+            print("DEBUG: Replay Buffer Stopping")
+       
+    if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED:
+        
+        if Data.Debug == True:
+            print("DEBUG: Replay Buffer Stopped")
 
 def rename_files(directory):
     print("Processing files in " + directory)
@@ -156,23 +178,44 @@ def script_update(settings):
     Data.Extension = S.obs_data_get_string(settings,"extension")
     Data.ExtensionMask = '\*' + Data.Extension
     Data.Remove_MKV = S.obs_data_get_bool(settings,"remove_mkv")
+    Data.DelayOld = Data.Delay
     Data.Delay = 1000*S.obs_data_get_int(settings,"period") or 15000
     Data.Debug = S.obs_data_get_bool(settings,"debug") or False
     Data.WindowCount = S.obs_data_get_int(settings,"windowcount") or 1
-    Data.RenameMode = S.obs_data_get_string(settings,"mode") or "windows"
+    Data.RenameMode = S.obs_data_get_int(settings,"mode")
 
-    print(Data.Delay)
-    S.timer_remove(timer_process)
-    S.timer_add(timer_process, Data.Delay)
+    if Data.Debug == True:
+        print("DEBUG: Script updating...")
+        print("DEBUG: Interval - " + str(Data.Delay))
+        print("DEBUG: Debug - " + str(Data.Debug))
+    
+        if Data.RenameMode == 0:
+            print("DEBUG: RenameMode - Active Window(s) title - " + str(Data.RenameMode))  
+        elif Data.RenameMode == 1:
+            print("DEBUG: RenameMode - Twitch Game/Stream title - " + str(Data.RenameMode))
+        elif Data.RenameMode == 2:
+            print("DEBUG: RenameMode - Active Scene(s) - " + str(Data.RenameMode))
+        elif Data.RenameMode == 3:
+            print("DEBUG: RenameMode - Active Game/Window Capture Source(s) - " + str(Data.RenameMode))
+        elif Data.RenameMode == 4:
+            print("DEBUG: RenameMode - OBS Profile Name - " + str(Data.RenameMode))   
+        elif Data.RenameMode == 5:
+            print("DEBUG: RenameMode - OBS Scene Collection Name - " + str(Data.RenameMode))
+    
+    if Data.Delay != Data.DelayOld:
+        if Data.Debug == True:
+            print("DEBUG: Time interval changed. Restarting timer_process.")
+
+        S.timer_remove(timer_process)
+        S.timer_add(timer_process, Data.Delay)
 
 def timer_process():
     print("timer activated")
-    print(S.obs_service_get_username)
     rename_files(Data.OutputDir)
 
 
 def script_description():
-    "Triggers either when the recording is stopped, or the replay buffer is saved."
+    return description
 
 
 def script_properties():
@@ -186,23 +229,29 @@ def script_properties():
         props,"period","Time interval (s)", 15, 3600, 15)
     S.obs_properties_add_bool(
         props,"remove_mkv","Remove .mkv on rename?")
-    print("lol")
-    print(S.obs_properties_add_bool(props,"debug", "Enable debug logging for this script") + " lol " + S.obs_properties_add_bool(props,"debug2", "Test debug2"))
-    S.obs_properties_add_int(
-        props,"windowcount", "Specify how many windows during this session will be included in the filename, sorted by longest running.", 1, 99, 1)
-
+    
     opermode = S.obs_properties_add_list(
-        props,"mode","Choose operation/filename source",S.OBS_COMBO_TYPE_LIST,S.OBS_COMBO_FORMAT_STRING)
-    S.obs_property_list_add_string(
-        opermode,"Use active stream and game title from Twitch","twitch")
-    S.obs_property_list_add_string(
-        opermode,"Use titles of most active window(s) during recording session.","windows")
-    S.obs_properties_add_text(
-        props,"twitch_channel","Twitch Channel name",S.OBS_TEXT_DEFAULT)
+        props,"mode","Rename mode",S.OBS_COMBO_TYPE_LIST,S.OBS_COMBO_FORMAT_INT)
+    S.obs_property_list_add_int(
+        opermode,"Most active foreground window(s) during recording session.", 0)
+    S.obs_property_list_add_int(
+        opermode,"Twitch Game/Stream title", 1)
+    S.obs_property_list_add_int(
+        opermode, "Most active scene name", 2)
+    S.obs_property_list_add_int(
+        opermode, "Most active game or window capture source", 3)
+    S.obs_property_list_add_int(
+        opermode, "OBS Profile name", 4)
+    S.obs_property_list_add_int(
+        opermode, "OBS Scene Collection name", 5)
+
+    
     S.obs_properties_add_int(
-        props,"windowcount", "Specify how many windows during this session will be included in the filename, sorted by longest running.", 1, 99, 1)
+        props,"windowcount", "Window count", 1, 99, 1)
+    S.obs_properties_add_text(
+        props,"twitch_channel","Twitch Channel",S.OBS_TEXT_DEFAULT)
     S.obs_properties_add_bool(
-        props,"debug", "Enable debug logging for this script")
+        props,"debug", "Enable Debug")
     
 
     return props
