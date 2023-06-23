@@ -268,7 +268,7 @@ def script_description():
 def script_properties():
     props = S.obs_properties_create()
     S.obs_properties_add_path(
-        props, "outputdir", "Recordings folder", S.OBS_PATH_DIRECTORY,
+        props, "outputdir", "Recordings Folder", S.OBS_PATH_DIRECTORY,
         None, str(Path.home()))
     # S.obs_properties_add_text(
     #     props,"extension","File extension",S.OBS_TEXT_DEFAULT)
@@ -278,7 +278,7 @@ def script_properties():
     #     props,"remove_mkv","Remove .mkv on rename?")
     
     opermode = S.obs_properties_add_list(
-        props,"mode","Rename mode",S.OBS_COMBO_TYPE_LIST,S.OBS_COMBO_FORMAT_INT)
+        props,"mode","Rename Mode",S.OBS_COMBO_TYPE_LIST,S.OBS_COMBO_FORMAT_INT)
     # S.obs_property_list_add_int(
     #     opermode,"Most active foreground window(s) during recording session.", 0)
     S.obs_property_list_add_int(
@@ -298,7 +298,7 @@ def script_properties():
     S.obs_properties_add_text(
         props,"twitch_channel","Twitch Channel",S.OBS_TEXT_DEFAULT)
     S.obs_properties_add_bool(
-        props,"replay_true", "Rename replays?")
+        props,"replay_true", "Rename Replays?")
     S.obs_properties_add_bool(
         props,"debug", "Enable Debug")
     

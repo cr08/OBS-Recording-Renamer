@@ -19,7 +19,7 @@ Once the `RecordingRenamer.py` script is added to OBS, you will be provided with
 - Recordings Folder: The folder OBS outputs the recordings to. This should match what is in `Settings > Output > Recording > Recording Path`
 - Rename Mode: This selects the source of the filename details. At this time, only `Twitch Game/Stream title` is available.
 - Twitch Channel: Your Twitch channel name. This is required to pull your game/stream title info
-- Rename replays?: Allows you to toggle if you want the script to rename your saved replays or default to the stock OBS functionality
+- Rename Replays?: Allows you to toggle if you want the script to rename your saved replays or default to the stock OBS functionality
 - Enable debug: As it says on the tin. I've included a ton of debugging lines that go to the script log in case things break.
 
 The script will then run whenever a recording is finished, or an instant replay buffer is saved.
