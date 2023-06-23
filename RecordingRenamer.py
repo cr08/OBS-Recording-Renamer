@@ -1,98 +1,142 @@
 import obspython as S
-import glob, win32gui, win32process, re, psutil, os, os.path
+import glob, os, os.path
+# import win32gui, win32process, re, psutil,
 from pathlib import Path
-from ctypes import windll
+# from ctypes import windll
 import urllib.request
+# from datetime import datetime
 
 description = "<center><h2>OBS-Rec-Rename</h2></center><center><h3>Script to automatically rename recordings based on content.</h3></center><center><h4>Click <a href=\"https://github.com/cr08/obs-rec-rename#readme\">here</a> for documentation.<hr>"
 
 class Data:
     OutputDir = None
-    Extension = None
-    ExtensionMask = None
-    Remove_MKV = None
-    Delay = None
+    # Extension = None
+    # ExtensionMask = None
+    # Remove_MKV = None
+    # Delay = None
     Debug = False
+    Replay_True = False
     RenameMode = None
-    WindowCount = None
+    # WindowCount = None
     ChannelName = None
     
-# Placeholder calls to pull game and stream title from Twitch. Will be added properly to the code later.
-# We'll be utilizing DecAPI which allows us to pull this data without any keys or auth. A note will be added
-# to the README in case this service ever fails in the future.
+# Date code not needed for now since we keep the timestamp from the stock recording functionality
+#
+# now = datetime.now()
+# timestamp = now.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-# twitch_streamtitle = urllib.request.urlopen("https://decapi.me/twitch/title/" + Data.ChannelName).read()
-# twitch_game = urllib.request.urlopen("https://decapi.me/twitch/game/" + Data.ChannelName).read()
+def cleanFilename(sourcestring,  removestring ="\`/<>\:\"\\|?*"):
+    return ''.join([c for c in sourcestring if c not in removestring])
 
 def on_event(event):
 
     if event == S.OBS_FRONTEND_EVENT_RECORDING_STOPPED:
-
-        print("Triggered when the recording stopped")
+        if Data.Debug == True:
+            print("DEBUG: Recording session STOPPED...") 
         path = find_latest_file(Data.OutputDir, '\*')
         dir = os.path.dirname(path)
         rawfile = os.path.basename(path)
-        title = get_window_title()
-        newfile = rawfile[:-4]+' - ' + title + '.'+Data.Extension
+        root_ext = os.path.splitext(rawfile)
         
-        file = rawfile[:-3]+Data.Extension
+        if Data.Debug == True:
+            print("DEBUG: Original Filename: \"" + rawfile + "\"")
+        
+        if Data.RenameMode == 1:
+            twitch_streamtitle = urllib.request.urlopen("https://decapi.me/twitch/title/" + str(Data.ChannelName)).read()
+            twitch_game = urllib.request.urlopen("https://decapi.me/twitch/game/" + str(Data.ChannelName)).read()
+            title = "VOD - " + Data.ChannelName + " - " + str(twitch_game.decode("utf-8")) + " - " + str(twitch_game.decode("utf-8"))
+            title = cleanFilename(title)
+            if Data.Debug == True:
+                print("DEBUG: Twitch Mode: Channel - " + Data.ChannelName)
+                print("DEBUG: Twitch Mode: Game - " + str(twitch_game.decode("utf-8")))
+                print("DEBUG: Twitch Mode: Stream Title - " + str(twitch_game.decode("utf-8")))
+
+        else:
+            # title = get_window_title()
+                if Data.Debug == True:
+                    print("DEBUG: A rename mode other than 'Twitch Game/Stream title' was chosen. Only the Twitch mode is available at this time.")
+                    
+        newfile = root_ext[0] + " - " + title + root_ext[1]
+        
+        file = root_ext[0] + root_ext[1]
         oldPath = dir +'\\'+ file
 
-        f = open(oldPath[:-3]+"txt", "w")
+        f = open(oldPath + ".txt", "w")
         f.write(newfile)
         f.close()
+        
+        rename_files(Data.OutputDir)
 
-        print(file)
-        print(oldPath)
-        print(newfile)
+        if Data.Debug == True:
+            print("DEBUG: Old file path - " + oldPath)
+            print("DEBUG: New file path - " + dir + "\\" + newfile)
+            
+
 
     if event == S.OBS_FRONTEND_EVENT_RECORDING_STARTED:
-        print("Triggered when the recording started. Window log cleaned and started.")
-        with open(script_path()+'/WindowLog.txt') as winlist:
-            if os.path.exists(winlist):
-                os.remove(winlist)
-                print("DEBUG: WindowLog.txt file found. Deleting and starting clean log.")
-            else:
-                print("DEBUG: No WindowLog.txt file found. Ignoring.")
+        if Data.Debug == True:
+            print("DEBUG: Recording session started...")        
+        # Commenting out the window title code for now. Initially we'll focus on just the Twitch stream info as the primary naming source
+        #
+        # print("Triggered when the recording started. Window log cleaned and started.")
+        # with open(script_path()+'/WindowLog.txt') as winlist:
+        #     if os.path.exists(winlist):
+        #         os.remove(winlist)
+        #         print("DEBUG: WindowLog.txt file found. Deleting and starting clean log.")
+        #     else:
+        #         print("DEBUG: No WindowLog.txt file found. Ignoring.")
     
     if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
-        
-        if Data.Debug == True:
-            print("DEBUG: Replay Buffer SAVED")
+        if Data.Replay_True == True:
+            if Data.Debug == True:
+                print("DEBUG: Replay Buffer SAVED")
+            path = find_latest_file(Data.OutputDir, '\*')
+            dir = os.path.dirname(path)
+            rawfile = os.path.basename(path)
+            root_ext = os.path.splitext(rawfile)
+            
+            if Data.Debug == True:
+                print("DEBUG: Original Filename: \"" + rawfile + "\"")
+                
+            if Data.RenameMode == 1:
+                twitch_streamtitle = urllib.request.urlopen("https://decapi.me/twitch/title/" + str(Data.ChannelName)).read()
+                twitch_game = urllib.request.urlopen("https://decapi.me/twitch/game/" + str(Data.ChannelName)).read()
+                title = "REP - " + Data.ChannelName + " - " + str(twitch_game.decode("utf-8")) + " - " + str(twitch_game.decode("utf-8"))
+                title = cleanFilename(title)
+                if Data.Debug == True:
+                    print("DEBUG: Twitch Mode: Channel - " + Data.ChannelName)
+                    print("DEBUG: Twitch Mode: Game - " + str(twitch_game.decode("utf-8")))
+                    print("DEBUG: Twitch Mode: Stream Title - " + str(twitch_game.decode("utf-8")))
 
-        print("Triggered when the replay buffer saved")
-        path = find_latest_file(Data.OutputDir, '\*')
-        dir = os.path.dirname(path)
-        rawfile = os.path.basename(path)
-        title = get_window_title()
-        newfile = rawfile[:-4]+' - ' + title + '.'+Data.Extension
-        
-        file = rawfile[:-3]+Data.Extension
-        oldPath = dir +'\\'+ file
+            else:
+                # title = get_window_title()
+                if Data.Debug == True:
+                    print("DEBUG: A rename mode other than 'Twitch Game/Stream title' was chosen. Only the Twitch mode is available at this time.")
+                
+            newfile = root_ext[0] + " - " + title + root_ext[1]
+            
+            file = root_ext[0] + root_ext[1]
+            oldPath = dir +'\\'+ file
 
-        f = open(oldPath[:-3]+"txt", "w")
-        f.write(newfile)
-        f.close()
+            f = open(oldPath + ".txt", "w")
+            f.write(newfile)
+            f.close()
 
-        print(file)
-        print(oldPath)
-        print(newfile)
+            rename_files(Data.OutputDir)
+
+            if Data.Debug == True:
+                print("DEBUG: Old file path - " + oldPath)
+                print("DEBUG: New file path - " + dir + "\\" + newfile)
         
-    if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
-        
-        if Data.Debug == True:
-            print("DEBUG: Replay Buffer Starting")
+        else:
+            if Data.Debug == True:
+                print("DEBUG: Replay buffer SAVED but we are not renaming replays. Skipping...")
             
     if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
         
         if Data.Debug == True:
             print("DEBUG: Replay Buffer Started")
-       
-    if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING:
-        
-        if Data.Debug == True:
-            print("DEBUG: Replay Buffer Stopping")
-       
+ 
     if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED:
         
         if Data.Debug == True:
@@ -102,63 +146,62 @@ def rename_files(directory):
     print("Processing files in " + directory)
     for txtfile in os.listdir(directory):
         if txtfile.endswith(".txt"):
+            root_ext = os.path.splitext(txtfile)
             newfile = open(os.path.join(directory, txtfile), 'r').read()
-            mkvfile = txtfile[:-3]+'mkv'
-            mp4file = txtfile[:-3]+Data.Extension
 
             try:
-                os.rename(os.path.join(directory, mp4file), os.path.join(directory, newfile))
+                os.rename(os.path.join(directory, root_ext[0]), os.path.join(directory, newfile))
                 os.remove(os.path.join(directory, txtfile))
-                if Data.Remove_MKV:
-                    os.remove(os.path.join(directory, mkvfile))
             except WindowsError:
                 print("Error, no file renamed")
         else:
             continue
 
 
-def get_window_title():
+# Commenting out the window title code for now. Initially we'll focus on just the Twitch stream info as the primary naming source
+#
+# def get_window_title():
 
-    user32 = windll.user32
+#     user32 = windll.user32
 
-    swd, sht = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+#     swd, sht = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
-    # Add in fullscreen detection here! 
-    w = win32gui
-    win_title = w.GetWindowText(w.GetForegroundWindow())
+#     # Add in fullscreen detection here! 
+#     w = win32gui
+#     win_title = w.GetWindowText(w.GetForegroundWindow())
     
-    l, t, r, b = w.GetWindowRect(w.GetForegroundWindow())
-    wd, ht = r - l, b - t
+#     l, t, r, b = w.GetWindowRect(w.GetForegroundWindow())
+#     wd, ht = r - l, b - t
 
-    tid, pid = win32process.GetWindowThreadProcessId(w.GetForegroundWindow())
-    p = psutil.Process(pid)
-    exe = p.name()
+#     tid, pid = win32process.GetWindowThreadProcessId(w.GetForegroundWindow())
+#     p = psutil.Process(pid)
+#     exe = p.name()
 
-    desktopOveride = 0
-    fullscreenOveride = 0
+#     desktopOveride = 0
+#     fullscreenOveride = 0
 
-    with open(script_path()+'/DesktopOverride.cfg') as dofile:
-     if exe in dofile.read():
-            desktopOveride = 1
+#     with open(script_path()+'/DesktopOverride.cfg') as dofile:
+#      if exe in dofile.read():
+#             desktopOveride = 1
     
-    with open(script_path()+'/FullscreenOverride.cfg') as fsfile:
-        if exe in fsfile.read():
-            fullscreenOveride = 1
+#     with open(script_path()+'/FullscreenOverride.cfg') as fsfile:
+#         if exe in fsfile.read():
+#             fullscreenOveride = 1
 
-    if win_title[:3] == 'OBS':
-        title = "Manual Recording"
-    elif desktopOveride == 1:
-        title = win_title
-    else:
-        if  wd == swd and ht == sht and fullscreenOveride == 0:
-            title = win_title
-        else:
-            title = "Desktop"
+#     if win_title[:3] == 'OBS':
+#         title = "Manual Recording"
+#     elif desktopOveride == 1:
+#         title = win_title
+#     else:
+#         if  wd == swd and ht == sht and fullscreenOveride == 0:
+#             title = win_title
+#         else:
+#             title = "Desktop"
 
-    title = re.sub(r'[^0-9A-Za-z .-]', '', title)
-    title = title[:50]
+#     title = re.sub(r'[^0-9A-Za-z .-]', '', title)
+#     title = title[:50]
 
-    return title
+#     return title
 
 
 def find_latest_file(folder_path, file_type):
@@ -175,24 +218,27 @@ def script_load(settings):
 def script_update(settings):
     Data.OutputDir = S.obs_data_get_string(settings,"outputdir")
     Data.OutputDir = Data.OutputDir.replace('/','\\')
-    Data.Extension = S.obs_data_get_string(settings,"extension")
-    Data.ExtensionMask = '\*' + Data.Extension
-    Data.Remove_MKV = S.obs_data_get_bool(settings,"remove_mkv")
-    Data.DelayOld = Data.Delay
-    Data.Delay = 1000*S.obs_data_get_int(settings,"period") or 15000
+    # Data.Extension = S.obs_data_get_string(settings,"extension")
+    # Data.ExtensionMask = '\*' + Data.Extension
+    # Data.Remove_MKV = S.obs_data_get_bool(settings,"remove_mkv")
+    # Data.DelayOld = Data.Delay
+    # Data.Delay = 1000*S.obs_data_get_int(settings,"period") or 15000
     Data.Debug = S.obs_data_get_bool(settings,"debug") or False
-    Data.WindowCount = S.obs_data_get_int(settings,"windowcount") or 1
+    Data.Replay_True = S.obs_data_get_bool(settings,"replay_true") or False
+    # Data.WindowCount = S.obs_data_get_int(settings,"windowcount") or 1
     Data.RenameMode = S.obs_data_get_int(settings,"mode")
+    Data.ChannelName = S.obs_data_get_string(settings, "twitch_channel")
 
     if Data.Debug == True:
         print("DEBUG: Script updating...")
-        print("DEBUG: Interval - " + str(Data.Delay))
+        # print("DEBUG: Interval - " + str(Data.Delay))
         print("DEBUG: Debug - " + str(Data.Debug))
     
         if Data.RenameMode == 0:
             print("DEBUG: RenameMode - Active Window(s) title - " + str(Data.RenameMode))  
         elif Data.RenameMode == 1:
             print("DEBUG: RenameMode - Twitch Game/Stream title - " + str(Data.RenameMode))
+            print("DEBUG: Twitch Channel - " + str(Data.ChannelName))
         elif Data.RenameMode == 2:
             print("DEBUG: RenameMode - Active Scene(s) - " + str(Data.RenameMode))
         elif Data.RenameMode == 3:
@@ -201,17 +247,18 @@ def script_update(settings):
             print("DEBUG: RenameMode - OBS Profile Name - " + str(Data.RenameMode))   
         elif Data.RenameMode == 5:
             print("DEBUG: RenameMode - OBS Scene Collection Name - " + str(Data.RenameMode))
+        print("DEBUG: Rename Replays - " + str(Data.Replay_True))
     
-    if Data.Delay != Data.DelayOld:
-        if Data.Debug == True:
-            print("DEBUG: Time interval changed. Restarting timer_process.")
+    # if Data.Delay != Data.DelayOld:
+    #     if Data.Debug == True:
+    #         print("DEBUG: Time interval changed. Restarting timer_process.")
 
-        S.timer_remove(timer_process)
-        S.timer_add(timer_process, Data.Delay)
+    #     S.timer_remove(timer_process)
+    #     S.timer_add(timer_process, Data.Delay)
 
-def timer_process():
-    print("timer activated")
-    rename_files(Data.OutputDir)
+# def timer_process():
+#     print("timer activated")
+#     rename_files(Data.OutputDir)
 
 
 def script_description():
@@ -223,33 +270,35 @@ def script_properties():
     S.obs_properties_add_path(
         props, "outputdir", "Recordings folder", S.OBS_PATH_DIRECTORY,
         None, str(Path.home()))
-    S.obs_properties_add_text(
-        props,"extension","File extension",S.OBS_TEXT_DEFAULT)
-    S.obs_properties_add_int(
-        props,"period","Time interval (s)", 15, 3600, 15)
-    S.obs_properties_add_bool(
-        props,"remove_mkv","Remove .mkv on rename?")
+    # S.obs_properties_add_text(
+    #     props,"extension","File extension",S.OBS_TEXT_DEFAULT)
+    # S.obs_properties_add_int(
+    #     props,"period","Time interval (s)", 15, 3600, 15)
+    # S.obs_properties_add_bool(
+    #     props,"remove_mkv","Remove .mkv on rename?")
     
     opermode = S.obs_properties_add_list(
         props,"mode","Rename mode",S.OBS_COMBO_TYPE_LIST,S.OBS_COMBO_FORMAT_INT)
-    S.obs_property_list_add_int(
-        opermode,"Most active foreground window(s) during recording session.", 0)
+    # S.obs_property_list_add_int(
+    #     opermode,"Most active foreground window(s) during recording session.", 0)
     S.obs_property_list_add_int(
         opermode,"Twitch Game/Stream title", 1)
-    S.obs_property_list_add_int(
-        opermode, "Most active scene name", 2)
-    S.obs_property_list_add_int(
-        opermode, "Most active game or window capture source", 3)
-    S.obs_property_list_add_int(
-        opermode, "OBS Profile name", 4)
-    S.obs_property_list_add_int(
-        opermode, "OBS Scene Collection name", 5)
+    # S.obs_property_list_add_int(
+    #     opermode, "Most active scene name", 2)
+    # S.obs_property_list_add_int(
+    #     opermode, "Most active game or window capture source", 3)
+    # S.obs_property_list_add_int(
+    #     opermode, "OBS Profile name", 4)
+    # S.obs_property_list_add_int(
+    #     opermode, "OBS Scene Collection name", 5)
 
     
-    S.obs_properties_add_int(
-        props,"windowcount", "Window count", 1, 99, 1)
+    # S.obs_properties_add_int(
+    #     props,"windowcount", "Window count", 1, 99, 1)
     S.obs_properties_add_text(
         props,"twitch_channel","Twitch Channel",S.OBS_TEXT_DEFAULT)
+    S.obs_properties_add_bool(
+        props,"replay_true", "Rename replays?")
     S.obs_properties_add_bool(
         props,"debug", "Enable Debug")
     

@@ -1,27 +1,33 @@
 # OBS-Rec-Rename
-### **The fork's changes still WIP and non-functional!**
-### OBS recording renamer, appends full screen window title to finished recordings and instant replays.
 
+This script automatically renames the recording once stopped to include extra useful info such as the game window/title or Twitch stream name. As of version 1.0, only the Twitch channel, game name, and stream title are used to produce the following filenames:
 
-## Installation
-The script, and to the best of my knowledge OBS, require Python 3.6. Alongside the Python install and correct settings for the Python scripts on OBS - [pywin32](https://pypi.org/project/pywin32/) and [psUtil](https://pypi.org/project/psutil/) are required. These can be installed via pip, but I faced issues with pywin32, so I installed that from the installer found [here](https://github.com/mhammond/pywin32/releases)
-```
-pip install pywin32
-pip install psutil
-```
-Once Python is setup, the script can be placed in any directory.
+`<original filename format as configured in OBS> - VOD/REP - Channel - Game Name - Stream Title.ext`
 
-## Usage
-Once installed, the script "RecordingRenamer.py" can be pointed to within the OBS scripts function, and 4 options will need to be set:
-- Output Directory: The folder OBS outputs the recordings to.
-- Extension: The filetype OBS is outputting (not including the .)
-- Time Interval: This is how often the renaming function of the script runs in seconds.
-- Remove mkv's: Use this check box if you would like to remove the old mkv files left behind once the files have been successfully renamed.
+##### Installation
+---
+* Please install a version of Python 3.6 or newer. This has been tested and is functional with 3.10 on my personal machine.
+* Launch OBS and open the Scripts menu by going to `Tools > Scripts` and select the `Python Settings` tab
+* Browse toward your Python install path where `python.exe` is located. This will vary depending on your install method. Once properly configured, the dialog should display `Loaded Python Version: 3.xx` below
+* Once Python is configured, return to the `Scripts` tab and add `RecordingRenamer.py` and configure the script accordingly (additional documentation for the available options in the Usage section below)
+  * NOTE: This script can be placed anywhere on your system. It does not need to be stored with the recordings and is advised against.
+
+##### Usage
+---
+Once the `RecordingRenamer.py` script is added to OBS, you will be provided with a set of options:
+
+- Recordings Folder: The folder OBS outputs the recordings to. This should match what is in `Settings > Output > Recording > Recording Path`
+- Rename Mode: This selects the source of the filename details. At this time, only `Twitch Game/Stream title` is available.
+- Twitch Channel: Your Twitch channel name. This is required to pull your game/stream title info
+- Rename replays?: Allows you to toggle if you want the script to rename your saved replays or default to the stock OBS functionality
+- Enable debug: As it says on the tin. I've included a ton of debugging lines that go to the script log in case things break.
 
 The script will then run whenever a recording is finished, or an instant replay buffer is saved.
 
-## Configuration
-There is not much extra configuration for the script, but if you would like to ignore certain executables, and have them fall-back to the default "Desktop" title, or to override non full-screen windows and use thier title rather than the default "Desktop". These list of executables are maintained in the "FullscreenOveride.cfg" and "DesktopOverride.cfg"
-
-## Details
-The scrpt detects the title of the foreground window when ever the recording or instant replay is saved. If the window is the OBS window, it will label the recoding "Manual Recording". If the window is detected as fullscreen on the primary monitor, it will label the recording that windows title (unless the executable is in the "FullscreenOverride.cfg" list. If the window is not fullscreen, the recording will be lablled "Desktop", unless the executable appears in the "DesktopOverride.cfg" file. 
+##### Changelog
+---
+###### 1.0
+* Basic functionality complete with the Twitch game name/stream title source to start with
+* Old window title code commented out for now. This needs a more significant overhaul for the functionality I want to implement
+* Timer code commented out - With only the Twitch mode active, we'll trigger the rename process at the time of the stopped recording instead of waiting for the timer loop to cycle. Saves on extra log spam and a negligible amount of extra processing
+* File extension code streamlined. We now poll the extension of the recordings automatically and maintain it after renaming.
