@@ -140,7 +140,8 @@ def on_event(event):
             print("DEBUG: Replay Buffer Stopped")
 
 def rename_files(directory):
-    print("Processing files in " + directory)
+    if Data.Debug == TRUE:
+        print("DEBUG: Processing files in " + directory)
     for txtfile in os.listdir(directory):
         if txtfile.endswith(".txt"):
             root_ext = os.path.splitext(txtfile)
@@ -150,7 +151,7 @@ def rename_files(directory):
                 os.rename(os.path.join(directory, root_ext[0]), os.path.join(directory, newfile))
                 os.remove(os.path.join(directory, txtfile))
             except WindowsError:
-                print("Error, no file renamed")
+                print("ERROR: No file renamed")
         else:
             continue
 
