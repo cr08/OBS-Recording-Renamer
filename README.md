@@ -29,7 +29,7 @@ The script will then run whenever a recording is finished, or an instant replay 
 ##### 1.0
 
 * Basic functionality complete with the Twitch game name/stream title source to start with
-  * Twitch info polling is provided through DecAPI.me - No keys or APIs required, just your channel name
+  * Twitch info polling is provided through DecAPI.me - No keys or or special credentials required, just your channel name
 * Old window title code commented out for now. This needs a more significant overhaul for the functionality I want to implement
 * Timer code commented out - With only the Twitch mode active, we'll trigger the rename process at the time of the stopped recording instead of waiting for the timer loop to cycle. Saves on extra log spam and a negligible amount of extra processing
 * File extension code streamlined. We now poll the extension of the recordings automatically and maintain it after renaming.
