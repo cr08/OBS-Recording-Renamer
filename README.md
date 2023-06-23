@@ -4,16 +4,16 @@ This script automatically renames the recording once stopped to include extra us
 
 `<original filename format as configured in OBS> - VOD/REP - Channel - Game Name - Stream Title.ext`
 
-##### Installation
----
+## Installation
+
 * Please install a version of Python 3.6 or newer. This has been tested and is functional with 3.10 on my personal machine.
 * Launch OBS and open the Scripts menu by going to `Tools > Scripts` and select the `Python Settings` tab
 * Browse toward your Python install path where `python.exe` is located. This will vary depending on your install method. Once properly configured, the dialog should display `Loaded Python Version: 3.xx` below
 * Once Python is configured, return to the `Scripts` tab and add `RecordingRenamer.py` and configure the script accordingly (additional documentation for the available options in the Usage section below)
   * NOTE: This script can be placed anywhere on your system. It does not need to be stored with the recordings and is advised against.
 
-##### Usage
----
+## Usage
+
 Once the `RecordingRenamer.py` script is added to OBS, you will be provided with a set of options:
 
 - Recordings Folder: The folder OBS outputs the recordings to. This should match what is in `Settings > Output > Recording > Recording Path`
@@ -24,9 +24,10 @@ Once the `RecordingRenamer.py` script is added to OBS, you will be provided with
 
 The script will then run whenever a recording is finished, or an instant replay buffer is saved.
 
-##### Changelog
----
-###### 1.0
+## Changelog
+
+##### 1.0
+
 * Basic functionality complete with the Twitch game name/stream title source to start with
 * Old window title code commented out for now. This needs a more significant overhaul for the functionality I want to implement
 * Timer code commented out - With only the Twitch mode active, we'll trigger the rename process at the time of the stopped recording instead of waiting for the timer loop to cycle. Saves on extra log spam and a negligible amount of extra processing
