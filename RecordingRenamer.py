@@ -140,7 +140,7 @@ def on_event(event):
             print("DEBUG: Replay Buffer Stopped")
 
 def rename_files(directory):
-    if Data.Debug == TRUE:
+    if Data.Debug == True:
         print("DEBUG: Processing files in " + directory)
     for txtfile in os.listdir(directory):
         if txtfile.endswith(".txt"):
