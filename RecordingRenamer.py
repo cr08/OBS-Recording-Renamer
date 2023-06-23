@@ -41,12 +41,12 @@ def on_event(event):
         if Data.RenameMode == 1:
             twitch_streamtitle = urllib.request.urlopen("https://decapi.me/twitch/title/" + str(Data.ChannelName)).read()
             twitch_game = urllib.request.urlopen("https://decapi.me/twitch/game/" + str(Data.ChannelName)).read()
-            title = "VOD - " + Data.ChannelName + " - " + str(twitch_game.decode("utf-8")) + " - " + str(twitch_game.decode("utf-8"))
+            title = "VOD - " + Data.ChannelName + " - " + str(twitch_game.decode("utf-8")) + " - " + str(twitch_streamtitle.decode("utf-8"))
             title = cleanFilename(title)
             if Data.Debug == True:
                 print("DEBUG: Twitch Mode: Channel - " + Data.ChannelName)
                 print("DEBUG: Twitch Mode: Game - " + str(twitch_game.decode("utf-8")))
-                print("DEBUG: Twitch Mode: Stream Title - " + str(twitch_game.decode("utf-8")))
+                print("DEBUG: Twitch Mode: Stream Title - " + str(twitch_streamtitle.decode("utf-8")))
 
         else:
             # title = get_window_title()
@@ -98,12 +98,12 @@ def on_event(event):
             if Data.RenameMode == 1:
                 twitch_streamtitle = urllib.request.urlopen("https://decapi.me/twitch/title/" + str(Data.ChannelName)).read()
                 twitch_game = urllib.request.urlopen("https://decapi.me/twitch/game/" + str(Data.ChannelName)).read()
-                title = "REP - " + Data.ChannelName + " - " + str(twitch_game.decode("utf-8")) + " - " + str(twitch_game.decode("utf-8"))
+                title = "REP - " + Data.ChannelName + " - " + str(twitch_game.decode("utf-8")) + " - " + str(twitch_streamtitle.decode("utf-8"))
                 title = cleanFilename(title)
                 if Data.Debug == True:
                     print("DEBUG: Twitch Mode: Channel - " + Data.ChannelName)
                     print("DEBUG: Twitch Mode: Game - " + str(twitch_game.decode("utf-8")))
-                    print("DEBUG: Twitch Mode: Stream Title - " + str(twitch_game.decode("utf-8")))
+                    print("DEBUG: Twitch Mode: Stream Title - " + str(twitch_streamtitle.decode("utf-8")))
 
             else:
                 # title = get_window_title()

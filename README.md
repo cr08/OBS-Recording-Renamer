@@ -26,6 +26,10 @@ The script will then run whenever a recording is finished, or an instant replay 
 
 ## Changelog
 
+##### 1.1
+
+* Fixed filename formatting. Code was previously written by accident to include the game name twice and not include the stream title. This is corrected and should follow the example shown at the top of this README.
+
 ##### 1.0
 
 * Basic functionality complete with the Twitch game name/stream title source to start with
