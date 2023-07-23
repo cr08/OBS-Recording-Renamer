@@ -6,6 +6,7 @@ This script automatically renames the recording once stopped to include extra us
 
 ## Installation
 * Please install a version of Python 3.6 or newer. This has been tested and is functional with 3.10 on my personal machine.
+  * Install prerequisite python modules: `pip install pywinctl pypiwin32`
 * Launch OBS and open the Scripts menu by going to `Tools > Scripts` and select the `Python Settings` tab
 * Browse toward your Python install path where `python.exe` is located. This will vary depending on your install method. Once properly configured, the dialog should display `Loaded Python Version: 3.xx` below
 * Once Python is configured, return to the `Scripts` tab and add `RecordingRenamer.py` and configure the script accordingly (additional documentation for the available options in the Usage section below)
