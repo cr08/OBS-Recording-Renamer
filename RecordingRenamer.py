@@ -5,17 +5,20 @@ from pathlib import Path
 # from ctypes import windll
 import urllib.request
 # from datetime import datetime
+import pywinctl as pwc
+
 
 description = "<center><h2>OBS-Rec-Rename</h2></center><center><h3>Script to automatically rename recordings based on content.</h3></center><center><h4>Click <a href=\"https://github.com/cr08/obs-rec-rename#readme\">here</a> for documentation.<hr>"
 
 class Data:
     OutputDir = None
-    # Delay = None
+    Delay = None
     Debug = False
     Replay_True = False
     RenameMode = None
     # WindowCount = None
     ChannelName = None
+    PropsEnabled = True
     
 # Date code not needed for now since we keep the timestamp from the stock recording functionality
 #
@@ -24,6 +27,8 @@ class Data:
 
 def cleanFilename(sourcestring,  removestring ="\`/<>\:\"\\|?*"):
     return ''.join([c for c in sourcestring if c not in removestring])
+
+# def prop_modified()
 
 def on_event(event):
 
@@ -67,6 +72,8 @@ def on_event(event):
         if Data.Debug == True:
             print("DEBUG: Old file path - " + oldPath)
             print("DEBUG: New file path - " + dir + "\\" + newfile)
+
+        Data.PropsEnabled = True
             
 
 
@@ -82,6 +89,8 @@ def on_event(event):
         #         print("DEBUG: WindowLog.txt file found. Deleting and starting clean log.")
         #     else:
         #         print("DEBUG: No WindowLog.txt file found. Ignoring.")
+
+        Data.PropsEnabled = False
     
     if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
         if Data.Replay_True == True:
@@ -155,6 +164,10 @@ def rename_files(directory):
         else:
             continue
 
+def get_foreground_window():
+
+    if Data.Debug == True:
+        print("DEBUG: Current window: \"" + pwc.getActiveWindowTitle() + "\"")
 
 # Commenting out the window title code for now. Initially we'll focus on just the Twitch stream info as the primary naming source
 #
@@ -216,8 +229,8 @@ def script_load(settings):
 def script_update(settings):
     Data.OutputDir = S.obs_data_get_string(settings,"outputdir")
     Data.OutputDir = Data.OutputDir.replace('/','\\')
-    # Data.DelayOld = Data.Delay
-    # Data.Delay = 1000*S.obs_data_get_int(settings,"period") or 15000
+    Data.DelayOld = Data.Delay
+    Data.Delay = 1000*S.obs_data_get_int(settings,"period") or 5000
     Data.Debug = S.obs_data_get_bool(settings,"debug") or False
     Data.Replay_True = S.obs_data_get_bool(settings,"replay_true") or False
     # Data.WindowCount = S.obs_data_get_int(settings,"windowcount") or 1
@@ -226,7 +239,7 @@ def script_update(settings):
 
     if Data.Debug == True:
         print("DEBUG: Script updating...")
-        # print("DEBUG: Interval - " + str(Data.Delay))
+        print("DEBUG: Interval - " + str(Data.Delay))
         print("DEBUG: Debug - " + str(Data.Debug))
     
         if Data.RenameMode == 0:
@@ -244,16 +257,17 @@ def script_update(settings):
             print("DEBUG: RenameMode - OBS Scene Collection Name - " + str(Data.RenameMode))
         print("DEBUG: Rename Replays - " + str(Data.Replay_True))
     
-    # if Data.Delay != Data.DelayOld:
-    #     if Data.Debug == True:
-    #         print("DEBUG: Time interval changed. Restarting timer_process.")
+    if Data.Delay != Data.DelayOld:
+        if Data.Debug == True:
+            print("DEBUG: Time interval changed. Restarting timer_process.")
 
-    #     S.timer_remove(timer_process)
-    #     S.timer_add(timer_process, Data.Delay)
+        S.timer_remove(timer_process)
+        S.timer_add(timer_process, Data.Delay)
 
-# def timer_process():
-#     print("timer activated")
-#     rename_files(Data.OutputDir)
+def timer_process():
+    print("timer activated")
+    # rename_files(Data.OutputDir)
+    get_foreground_window()
 
 
 def script_description():
@@ -262,36 +276,45 @@ def script_description():
 
 def script_properties():
     props = S.obs_properties_create()
-    S.obs_properties_add_path(
+    outputdir_p = S.obs_properties_add_path(
         props, "outputdir", "Recordings Folder", S.OBS_PATH_DIRECTORY,
         None, str(Path.home()))
-    # S.obs_properties_add_int(
-    #     props,"period","Time interval (s)", 15, 3600, 15)
+    S.obs_property_set_enabled(outputdir_p, Data.PropsEnabled)
+    S.obs_properties_add_int(
+        props,"period","Time interval (s)", 5, 3600, 5)
     
-    opermode = S.obs_properties_add_list(
+    mode_p = S.obs_properties_add_list(
         props,"mode","Rename Mode",S.OBS_COMBO_TYPE_LIST,S.OBS_COMBO_FORMAT_INT)
+    S.obs_property_set_enabled(mode_p, Data.PropsEnabled)
     # S.obs_property_list_add_int(
-    #     opermode,"Most active foreground window(s) during recording session.", 0)
+    #     mode_p,"Most active foreground window(s) during recording session.", 0)
     S.obs_property_list_add_int(
-        opermode,"Twitch Game/Stream title", 1)
+        mode_p,"Twitch Game/Stream title", 1)
     # S.obs_property_list_add_int(
-    #     opermode, "Most active scene name", 2)
+    #     mode_p, "Most active scene name", 2)
     # S.obs_property_list_add_int(
-    #     opermode, "Most active game or window capture source", 3)
+    #     mode_p, "Most active game or window capture source", 3)
     # S.obs_property_list_add_int(
-    #     opermode, "OBS Profile name", 4)
+    #     mode_p, "OBS Profile name", 4)
     # S.obs_property_list_add_int(
-    #     opermode, "OBS Scene Collection name", 5)
+    #     mode_p, "OBS Scene Collection name", 5)
 
     
     # S.obs_properties_add_int(
     #     props,"windowcount", "Window count", 1, 99, 1)
-    S.obs_properties_add_text(
+    twitch_channel_p = S.obs_properties_add_text(
         props,"twitch_channel","Twitch Channel",S.OBS_TEXT_DEFAULT)
-    S.obs_properties_add_bool(
+    S.obs_property_set_enabled(twitch_channel_p, False)
+    replay_true_p = S.obs_properties_add_bool(
         props,"replay_true", "Rename Replays?")
-    S.obs_properties_add_bool(
+    S.obs_property_set_enabled(replay_true_p, False)
+    debug_p = S.obs_properties_add_bool(
         props,"debug", "Enable Debug")
+
+    # obs_property_set_modified_callback(outputdir_p, prop_modified)
+    # obs_property_set_modified_callback(mode_p, prop_modified)
+    # obs_property_set_modified_callback(twitch_channel_p, prop_modified)
+    # obs_property_set_modified_callback(replay_true_p, prop_modified)
     
 
     return props
