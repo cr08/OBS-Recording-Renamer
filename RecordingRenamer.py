@@ -1,8 +1,6 @@
 import obspython as S
 import glob, os, os.path
-# import win32gui, win32process, re, psutil,
 from pathlib import Path
-# from ctypes import windll
 import urllib.request
 # from datetime import datetime
 import pywinctl as pwc
@@ -18,7 +16,6 @@ class Data:
     RenameMode = None
     # WindowCount = None
     ChannelName = None
-    PropsEnabled = True
     
 # Date code not needed for now since we keep the timestamp from the stock recording functionality
 #
@@ -27,8 +24,6 @@ class Data:
 
 def cleanFilename(sourcestring,  removestring ="\`/<>\:\"\\|?*"):
     return ''.join([c for c in sourcestring if c not in removestring])
-
-# def prop_modified()
 
 def on_event(event):
 
@@ -71,10 +66,7 @@ def on_event(event):
 
         if Data.Debug == True:
             print("DEBUG: Old file path - " + oldPath)
-            print("DEBUG: New file path - " + dir + "\\" + newfile)
-
-        Data.PropsEnabled = True
-            
+            print("DEBUG: New file path - " + dir + "\\" + newfile)            
 
 
     if event == S.OBS_FRONTEND_EVENT_RECORDING_STARTED:
@@ -90,8 +82,6 @@ def on_event(event):
         #     else:
         #         print("DEBUG: No WindowLog.txt file found. Ignoring.")
 
-        Data.PropsEnabled = False
-    
     if event == S.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
         if Data.Replay_True == True:
             if Data.Debug == True:
@@ -165,55 +155,8 @@ def rename_files(directory):
             continue
 
 def get_foreground_window():
-
     if Data.Debug == True:
         print("DEBUG: Current window: \"" + pwc.getActiveWindowTitle() + "\"")
-
-# Commenting out the window title code for now. Initially we'll focus on just the Twitch stream info as the primary naming source
-#
-# def get_window_title():
-
-#     user32 = windll.user32
-
-#     swd, sht = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-
-#     # Add in fullscreen detection here! 
-#     w = win32gui
-#     win_title = w.GetWindowText(w.GetForegroundWindow())
-    
-#     l, t, r, b = w.GetWindowRect(w.GetForegroundWindow())
-#     wd, ht = r - l, b - t
-
-#     tid, pid = win32process.GetWindowThreadProcessId(w.GetForegroundWindow())
-#     p = psutil.Process(pid)
-#     exe = p.name()
-
-#     desktopOveride = 0
-#     fullscreenOveride = 0
-
-#     with open(script_path()+'/DesktopOverride.cfg') as dofile:
-#      if exe in dofile.read():
-#             desktopOveride = 1
-    
-#     with open(script_path()+'/FullscreenOverride.cfg') as fsfile:
-#         if exe in fsfile.read():
-#             fullscreenOveride = 1
-
-#     if win_title[:3] == 'OBS':
-#         title = "Manual Recording"
-#     elif desktopOveride == 1:
-#         title = win_title
-#     else:
-#         if  wd == swd and ht == sht and fullscreenOveride == 0:
-#             title = win_title
-#         else:
-#             title = "Desktop"
-
-#     title = re.sub(r'[^0-9A-Za-z .-]', '', title)
-#     title = title[:50]
-
-#     return title
-
 
 def find_latest_file(folder_path, file_type):
 
@@ -221,10 +164,8 @@ def find_latest_file(folder_path, file_type):
         max_file = max(files, key=os.path.getctime)
         return max_file
 
-
 def script_load(settings):
     S.obs_frontend_add_event_callback(on_event)
-
 
 def script_update(settings):
     Data.OutputDir = S.obs_data_get_string(settings,"outputdir")
@@ -279,13 +220,11 @@ def script_properties():
     outputdir_p = S.obs_properties_add_path(
         props, "outputdir", "Recordings Folder", S.OBS_PATH_DIRECTORY,
         None, str(Path.home()))
-    S.obs_property_set_enabled(outputdir_p, Data.PropsEnabled)
-    S.obs_properties_add_int(
+    period_p = S.obs_properties_add_int(
         props,"period","Time interval (s)", 5, 3600, 5)
     
     mode_p = S.obs_properties_add_list(
         props,"mode","Rename Mode",S.OBS_COMBO_TYPE_LIST,S.OBS_COMBO_FORMAT_INT)
-    S.obs_property_set_enabled(mode_p, Data.PropsEnabled)
     # S.obs_property_list_add_int(
     #     mode_p,"Most active foreground window(s) during recording session.", 0)
     S.obs_property_list_add_int(
@@ -304,17 +243,10 @@ def script_properties():
     #     props,"windowcount", "Window count", 1, 99, 1)
     twitch_channel_p = S.obs_properties_add_text(
         props,"twitch_channel","Twitch Channel",S.OBS_TEXT_DEFAULT)
-    S.obs_property_set_enabled(twitch_channel_p, False)
     replay_true_p = S.obs_properties_add_bool(
         props,"replay_true", "Rename Replays?")
-    S.obs_property_set_enabled(replay_true_p, False)
     debug_p = S.obs_properties_add_bool(
         props,"debug", "Enable Debug")
-
-    # obs_property_set_modified_callback(outputdir_p, prop_modified)
-    # obs_property_set_modified_callback(mode_p, prop_modified)
-    # obs_property_set_modified_callback(twitch_channel_p, prop_modified)
-    # obs_property_set_modified_callback(replay_true_p, prop_modified)
     
 
     return props
