@@ -141,10 +141,11 @@ def rename_files(old, new):
 
     try:
         os.rename(old, new)
-    except WindowsError:
-        print("ERROR: No file renamed")
-    if Data.Debug == True:
-        print("DEBUG: Recording renamed.")
+        if Data.Debug == True:
+            print("DEBUG: Recording renamed.")
+    except OSError as e:
+        print(f"ERROR: {e}")
+
 
 # def get_foreground_window():
 #     if Data.Debug == True:
