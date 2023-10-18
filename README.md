@@ -5,6 +5,7 @@ This script automatically renames the recording once stopped to include extra us
 `<original filename format as configured in OBS> - VOD/REP - Channel - Game Name - Stream Title.ext`
 
 ## Installation
+
 * Please install a version of Python 3.6 or newer. This has been tested and is functional with 3.10 on my personal machine.
   * Install prerequisite python modules: `pip install pywinctl pypiwin32`
 * Launch OBS and open the Scripts menu by going to `Tools > Scripts` and select the `Python Settings` tab
@@ -13,8 +14,9 @@ This script automatically renames the recording once stopped to include extra us
   * NOTE: This script can be placed anywhere on your system. It does not need to be stored with the recordings and is advised against.
 
 ## Usage
+
 Once the `RecordingRenamer.py` script is added to OBS, you will be provided with a set of options:
-- Recordings Folder: The folder OBS outputs the recordings to. This should match what is in `Settings > Output > Recording > Recording Path`
+
 - Rename Mode: This selects the source of the filename details. At this time, only `Twitch Game/Stream title` is available.
 - Twitch Channel: Your Twitch channel name. This is required to pull your game/stream title info
 - Rename Replays?: Allows you to toggle if you want the script to rename your saved replays or default to the stock OBS functionality
@@ -24,10 +26,18 @@ The script will then run whenever a recording is finished, or an instant replay 
 
 ## Changelog
 
+### 1.2
+
+* OBS v29.0.0 is the minimum supported version now to use the `obs_frontend_get_last_recording` and `obs_frontend_get_last_replay` functions introducted in v29 to grab the recording/replay filename direct from OBS instead of checking with the host filesystem. Overall this simplifies much of the filename/renaming code.
+  * Sub-folders are now supported
+  * Recording folder setting option now removed and no longer needed to be input by the user
+
 ### 1.1
+
 * Fixed filename formatting. Code was previously written by accident to include the game name twice and not include the stream title. This is corrected and should follow the example shown at the top of this README.
 
 ### 1.0
+
 * Basic functionality complete with the Twitch game name/stream title source to start with
   * Twitch info polling is provided through DecAPI.me - No keys or or special credentials required, just your channel name
 * Old window title code commented out for now. This needs a more significant overhaul for the functionality I want to implement
