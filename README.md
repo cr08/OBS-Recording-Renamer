@@ -6,6 +6,7 @@ This script automatically renames the recording once stopped to include extra us
 
 ## Installation
 
+* OBS v29 minimum required
 * Please install a version of Python 3.6 or newer. This has been tested and is functional with 3.10 on my personal machine.
   * Install prerequisite python modules: `pip install pywinctl pypiwin32`
 * Launch OBS and open the Scripts menu by going to `Tools > Scripts` and select the `Python Settings` tab
