@@ -202,9 +202,8 @@ def script_description():
 
 def script_properties():
     props = S.obs_properties_create()
-    period_p = S.obs_properties_add_int(
-        props,"period","Time interval (s)", 5, 3600, 5)
-    
+    # period_p = S.obs_properties_add_int(
+    #     props,"period","Time interval (s)", 5, 3600, 5)
     mode_p = S.obs_properties_add_list(
         props,"mode","Rename Mode",S.OBS_COMBO_TYPE_LIST,S.OBS_COMBO_FORMAT_INT)
     S.obs_property_list_add_int(
@@ -221,8 +220,8 @@ def script_properties():
     #     mode_p, "OBS Scene Collection name", 5)
 
     
-    S.obs_properties_add_int(
-        props,"windowcount", "Window count", 1, 99, 1)
+    # S.obs_properties_add_int(
+    #     props,"windowcount", "Window count", 1, 99, 1)
     twitch_channel_p = S.obs_properties_add_text(
         props,"twitch_channel","Twitch Channel",S.OBS_TEXT_DEFAULT)
     replay_true_p = S.obs_properties_add_bool(
