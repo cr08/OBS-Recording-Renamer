@@ -32,3 +32,7 @@ The script will then run whenever a recording is finished, or an instant replay 
 * Old window title code commented out for now. This needs a more significant overhaul for the functionality I want to implement
 * Timer code commented out - With only the Twitch mode active, we'll trigger the rename process at the time of the stopped recording instead of waiting for the timer loop to cycle. Saves on extra log spam and a negligible amount of extra processing
 * File extension code streamlined. We now poll the extension of the recordings automatically and maintain it after renaming.
+
+## Credits
+
+Original code by [pjw29](https://github.com/pjw29/) - [obs-rec-rename](https://github.com/pjw29/)
